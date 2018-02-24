@@ -1,0 +1,3 @@
+#!/bin/bash
+find . -name '*.bak' -exec rm -v '{}' \;
+find . -name '.php_cs.cache' -exec rm -v '{}' \;
