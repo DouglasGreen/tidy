@@ -98,6 +98,7 @@ abstract class Printer
                 $cmd = 'find %s -type f';
                 $files = $this->runCommand($cmd, $path);
                 $re = '\\.(' . implode('|', $this->exts) . ')$';
+                sort($files);
                 foreach ($files as $file) {
                     if (preg_match('/' . $re . '/', $file)) {
                         $this->processFile($file);
