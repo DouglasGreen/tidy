@@ -196,6 +196,11 @@ class HtmlPrinter extends Printer
     {
         foreach ($this->scripts as $replace) {
             list($oldScript, $newScript) = $replace;
+
+            // Fix one-line scripts that have been broken into two lines.
+            if (preg_match('~(<script[^>]*>)\s*\n\s*(</script>)~i', $oldScript, $match)) {
+                $oldScript = $match[1] . $match[2];
+            }
             $pretty = str_replace($newScript, $oldScript, $pretty);
         }
         return $pretty;
