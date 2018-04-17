@@ -1,4 +1,5 @@
 <?php
+
 namespace Tidy;
 
 /** Base class for formatters. */
@@ -68,7 +69,7 @@ abstract class Printer
         $lines = explode("\n", $source);
         $newLines = [];
         foreach ($lines as $line) {
-            if (preg_match('/^( *)(\S.*)/', $line, $match)) {
+            if (preg_match('/^( *)(\\S.*)/', $line, $match)) {
                 $len = strlen($match[1]);
                 if ($len % self::DEFAULT_INDENT == 0) {
                     $level = $len / self::DEFAULT_INDENT;
@@ -142,7 +143,7 @@ abstract class Printer
             $outFile = 'php://stdout';
         } else {
             if (!file_exists($inFile)) {
-                die("File $inFile not found\n");
+                die("File {$inFile} not found\n");
             }
 
             // Write filename to stderr.
@@ -183,7 +184,7 @@ abstract class Printer
         $command = sprintf($command, escapeshellarg($arg));
         exec($command, $output, $returnCode);
         if ($returnCode) {
-            error_log("Error running $command on $arg: $returnCode");
+            error_log("Error running {$command} on {$arg}: {$returnCode}");
             die;
         }
         return $output;
@@ -204,7 +205,7 @@ abstract class Printer
         $newLines = [];
         foreach ($lines as $line) {
             $line = rtrim($line);
-            if (preg_match('/^( +)(\S.*)/', $line, $match)) {
+            if (preg_match('/^( +)(\\S.*)/', $line, $match)) {
                 $indent = $match[1];
                 $rest = $match[2];
 
@@ -237,13 +238,13 @@ abstract class Printer
      */
     protected function wrapComments($source)
     {
-        if (preg_match_all('~(?<=\n) */\*.*?\*/ *\n~s', $source, $matches)) {
+        if (preg_match_all('~(?<=\\n) */\\*.*?\\*/ *\\n~s', $source, $matches)) {
             foreach ($matches[0] as $block) {
                 $pretty = $this->wrapMultiline($block);
                 $source = str_replace($block, $pretty, $source);
             }
         }
-        if (preg_match_all('~(?<=\n)( *//.*\n)+~', $source, $matches)) {
+        if (preg_match_all('~(?<=\\n)( *//.*\\n)+~', $source, $matches)) {
             foreach ($matches[0] as $block) {
                 $pretty = $this->wrapSingleLine($block);
                 $source = str_replace($block, $pretty, $source);
@@ -262,18 +263,18 @@ abstract class Printer
     protected function wrapMultiline($block)
     {
         $lines = explode("\n", rtrim($block));
-        preg_match('~^( *)(/\*+)~', $lines[0], $match);
+        preg_match('~^( *)(/\\*+)~', $lines[0], $match);
         $indent = $match[1];
         $text = '';
         $prevTag = '';
         foreach ($lines as $line) {
             // Remove comment marks.
-            $line = preg_replace('~\*/ *$~', '', $line);
-            $line = preg_replace('~^ *(\/\*+|\*)~', '', $line);
-            $line = preg_replace('~\s+~', ' ', $line);
+            $line = preg_replace('~\\*/ *$~', '', $line);
+            $line = preg_replace('~^ *(\\/\\*+|\\*)~', '', $line);
+            $line = preg_replace('~\\s+~', ' ', $line);
 
             // Put @tags on new line.
-            if (preg_match('/^\s*@(\w+)/', $line, $match)) {
+            if (preg_match('/^\\s*@(\\w+)/', $line, $match)) {
                 $tag = $match[1];
 
                 // Add extra line when switching tags.
@@ -314,7 +315,7 @@ abstract class Printer
         $text = '';
         foreach ($lines as $line) {
             $line = preg_replace('~^ *//~', '', $line);
-            $line = preg_replace('~\s+~', ' ', $line);
+            $line = preg_replace('~\\s+~', ' ', $line);
             $text .= trim($line) . ' ';
         }
         $text = trim(wordwrap($text));

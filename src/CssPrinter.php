@@ -1,4 +1,5 @@
 <?php
+
 namespace Tidy;
 
 use csstidy;
@@ -21,7 +22,7 @@ class CssPrinter extends Printer
         $pretty = '';
 
         // Save comments that occur outside of CSS.
-        $parts = preg_split('~(/\*.*?\*/)~s', $source, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+        $parts = preg_split('~(/\\*.*?\\*/)~s', $source, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
 
         // Create formatter.
         $format = \Sabberworm\CSS\OutputFormat::createPretty()->indentWithSpaces(self::DEFAULT_INDENT);
@@ -100,9 +101,9 @@ class CssPrinter extends Printer
         $newLines = [];
         foreach ($lines as $line) {
             if (strlen($line) > 80) {
-                preg_match('/^\s*/', $line, $match);
+                preg_match('/^\\s*/', $line, $match);
                 $indent = ",\n" . $match[0] . '    ';
-                $parts = preg_split('/,\s+/', $line, -1, PREG_SPLIT_NO_EMPTY);
+                $parts = preg_split('/,\\s+/', $line, -1, PREG_SPLIT_NO_EMPTY);
                 $line = implode($indent, $parts);
             }
             $newLines[] = $line;
@@ -120,7 +121,10 @@ class CssPrinter extends Printer
      */
     protected function checkBlock($block)
     {
-        $counts = ['{' => 0, '}' => 0];
+        $counts = [
+            '{' => 0,
+            '}' => 0
+        ];
         if (preg_match_all('/[{}]/', $block, $matches)) {
             foreach ($matches[0] as $match) {
                 $counts[$match]++;

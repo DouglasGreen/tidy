@@ -1,4 +1,5 @@
 <?php
+
 namespace Tidy;
 
 /** Format JavaScript. */
@@ -30,7 +31,7 @@ class JsPrinter extends Printer
         }
 
         // Remove extra left space to force tidy to start in column 0.
-        $source = preg_replace('/^[ \t]+/m', '', $source);
+        $source = preg_replace('/^[ \\t]+/m', '', $source);
 
         // Create a temporary file to format.
         $tempFile = tempnam('/tmp', 'js_source');

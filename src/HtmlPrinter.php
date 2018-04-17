@@ -1,4 +1,5 @@
 <?php
+
 namespace Tidy;
 
 use tidy;
@@ -70,7 +71,7 @@ class HtmlPrinter extends Printer
     protected function fixBlankLines($pretty)
     {
         // Remove sequences of newlines.
-        $pretty = preg_replace('~\n+\s*\n+~', "\n", $pretty);
+        $pretty = preg_replace('~\\n+\\s*\\n+~', "\n", $pretty);
 
         // Add newlines after each close block.
         $pretty = preg_replace('~^</[^>]+>$~m', '\\0' . "\n", $pretty);
@@ -86,9 +87,9 @@ class HtmlPrinter extends Printer
      */
     protected function fixPhpTal($pretty)
     {
-        if (preg_match_all('/\${.*?}/s', $pretty, $matches)) {
+        if (preg_match_all('/\\${.*?}/s', $pretty, $matches)) {
             foreach ($matches[0] as $oldRef) {
-                $newRef = preg_replace('/\s+/', ' ', $oldRef);
+                $newRef = preg_replace('/\\s+/', ' ', $oldRef);
                 if ($oldRef != $newRef) {
                     $pretty = str_replace($oldRef, $newRef, $pretty);
                 }
@@ -136,7 +137,7 @@ class HtmlPrinter extends Printer
      */
     protected function replaceEmptyTags($pretty)
     {
-        $pretty = preg_replace('~(<([\w:.-]+)\b[^>]*>)\s+(</\\2>)~s', '\\1\\3', $pretty);
+        $pretty = preg_replace('~(<([\\w:.-]+)\\b[^>]*>)\\s+(</\\2>)~s', '\\1\\3', $pretty);
         return $pretty;
     }
 
@@ -151,7 +152,7 @@ class HtmlPrinter extends Printer
     {
         if (preg_match_all('@<.*?>@s', $pretty, $matches)) {
             foreach ($matches[0] as $tag) {
-                if (preg_match_all('@\w+=\'([^"]*?)\'@', $tag, $attrMatches)) {
+                if (preg_match_all('@\\w+=\'([^"]*?)\'@', $tag, $attrMatches)) {
                     $newTag = $tag;
                     foreach ($attrMatches[0] as $attr) {
                         $newAttr = str_replace('\'', '"', $attr);
@@ -174,7 +175,7 @@ class HtmlPrinter extends Printer
      */
     protected function replaceSplitTags($pretty)
     {
-        if (preg_match_all('~(<([\w:.-]+).*?>)(.*\n.*\n\s*)(</\2>)~', $pretty, $matches)) {
+        if (preg_match_all('~(<([\\w:.-]+).*?>)(.*\\n.*\\n\\s*)(</\\2>)~', $pretty, $matches)) {
             foreach ($matches[0] as $i => $match) {
                 if (strlen($match) < 80) {
                     $short = $matches[1][$i] . trim($matches[3][$i]) . $matches[4][$i];
@@ -198,7 +199,7 @@ class HtmlPrinter extends Printer
             list($oldScript, $newScript) = $replace;
 
             // Fix one-line scripts that have been broken into two lines.
-            if (preg_match('~(<script[^>]*>)\s*\n\s*(</script>)~i', $oldScript, $match)) {
+            if (preg_match('~(<script[^>]*>)\\s*\\n\\s*(</script>)~i', $oldScript, $match)) {
                 $oldScript = $match[1] . $match[2];
             }
             $pretty = str_replace($newScript, $oldScript, $pretty);
@@ -220,7 +221,10 @@ class HtmlPrinter extends Printer
             foreach ($scripts as $i => $oldScript) {
                 $newScript = sprintf('<script tempid="js%08d"></script>', $i);
                 $pretty = str_replace($oldScript, $newScript, $pretty);
-                $this->scripts[] = [$oldScript, $newScript];
+                $this->scripts[] = [
+                    $oldScript,
+                    $newScript
+                ];
             }
         }
         return $pretty;
@@ -236,17 +240,17 @@ class HtmlPrinter extends Printer
      */
     protected function updateTagCount($counts, $line)
     {
-        if (preg_match_all('~<([\w:.-]+).*?>~', $line, $matches)) {
+        if (preg_match_all('~<([\\w:.-]+).*?>~', $line, $matches)) {
             foreach ($matches[1] as $i => $tag) {
                 // Skip empty tags.
-                if (preg_match('~/\s*>~', $matches[0][$i])) {
+                if (preg_match('~/\\s*>~', $matches[0][$i])) {
                     continue;
                 }
                 $tag = strtolower($tag);
                 $counts[$tag] = isset($counts[$tag]) ? $counts[$tag] + 1 : 1;
             }
         }
-        if (preg_match_all('~</([\w:.-]+)~', $line, $matches)) {
+        if (preg_match_all('~</([\\w:.-]+)~', $line, $matches)) {
             foreach ($matches[1] as $tag) {
                 $tag = strtolower($tag);
                 $counts[$tag] = isset($counts[$tag]) ? $counts[$tag] - 1 : -1;
@@ -254,7 +258,6 @@ class HtmlPrinter extends Printer
         }
         return $counts;
     }
-
 
     /**
      * Wrap long tags and lines of text.
@@ -268,16 +271,16 @@ class HtmlPrinter extends Printer
         $lines = explode("\n", $pretty);
         $pretty = '';
         foreach ($lines as $line) {
-            if (preg_match('~^(\s*)(<[\w:.-]+)([^>]{80,})>~', $line, $match)) {
+            if (preg_match('~^(\\s*)(<[\\w:.-]+)([^>]{80,})>~', $line, $match)) {
                 $oldTag = $match[0];
                 $ws = $match[1];
                 $tag = $match[2];
                 $attrib = $match[3];
-                $newAttrib = preg_replace('/\s+([\w:.-]+=)/', "\n" . $ws . str_repeat(' ', self::DEFAULT_INDENT) . '\\1', $attrib);
+                $newAttrib = preg_replace('/\\s+([\\w:.-]+=)/', "\n" . $ws . str_repeat(' ', self::DEFAULT_INDENT) . '\\1', $attrib);
                 $newTag = $ws . $tag . $newAttrib . '>';
                 $line = str_replace($oldTag, $newTag, $line);
             } elseif (!preg_match('~[<>]~', $line)) {
-                preg_match('~^\s*~', $line, $match);
+                preg_match('~^\\s*~', $line, $match);
                 $ws = $match[0];
                 $line = wordwrap($line, 80 - strlen($ws), "\n" . $ws);
             }

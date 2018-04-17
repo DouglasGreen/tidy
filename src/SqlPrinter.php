@@ -1,4 +1,5 @@
 <?php
+
 namespace Tidy;
 
 /** Format SQL. */
@@ -14,11 +15,11 @@ class SqlPrinter extends Printer
     public function format($source)
     {
         $indent = $this->options['indent'];
-        $queries = preg_split('/;\s*\n/', $source, -1, PREG_SPLIT_NO_EMPTY);
+        $queries = preg_split('/;\\s*\\n/', $source, -1, PREG_SPLIT_NO_EMPTY);
         $pretty = '';
         $count = count($queries);
         foreach ($queries as $query) {
-            $newQuery = \PhpMyAdmin\SqlParser\Utils\Formatter::format($query, array('type' => 'text'));
+            $newQuery = \PhpMyAdmin\SqlParser\Utils\Formatter::format($query, ['type' => 'text']);
             $lines = explode("\n", $newQuery);
             $newLines = [];
             foreach ($lines as $line) {
@@ -49,9 +50,9 @@ class SqlPrinter extends Printer
     protected function fixPhpVars($line)
     {
         // Remove extra spaces from PHP variable references.
-        if (preg_match_all('/{ *\$ *\w.*?}/', $line, $matches)) {
+        if (preg_match_all('/{ *\\$ *\\w.*?}/', $line, $matches)) {
             foreach ($matches[0] as $match) {
-                $ref = preg_replace('/\s+/', '', $match);
+                $ref = preg_replace('/\\s+/', '', $match);
                 $line = str_replace($match, $ref, $line);
             }
         }
@@ -69,7 +70,7 @@ class SqlPrinter extends Printer
         $result = $query;
 
         // USE commands must be on one line.
-        $result = preg_replace('/\bUSE\s+(\w+)/', 'USE \1', $result);
+        $result = preg_replace('/\\bUSE\\s+(\\w+)/', 'USE \\1', $result);
         return $result;
     }
 
@@ -96,7 +97,7 @@ class SqlPrinter extends Printer
     protected function splitLong($line)
     {
         // Break up long lines that have embedded AND|OR.
-        if (strlen($line) <= 80 || preg_match('/^\s+(#|--)/', $line)) {
+        if (strlen($line) <= 80 || preg_match('/^\\s+(#|--)/', $line)) {
             return $line;
         }
         $indent = str_repeat(' ', self::DEFAULT_INDENT);
