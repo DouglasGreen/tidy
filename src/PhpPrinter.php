@@ -42,7 +42,7 @@ class PhpPrinter extends Printer
         if ($this->options['wrapComments']) {
             $pretty = $this->wrapComments($pretty);
         }
-        $pretty = $this->fixCommentIndent($pretty, $indent);
+        $pretty = $this->fixCommentSpacing($pretty, $indent);
         $pretty = $this->fixControlStructure($pretty);
         $pretty = $this->trimExtraSpace($pretty) . "\n";
         $pretty = $this->fixIndent($pretty, $indent);
@@ -50,28 +50,43 @@ class PhpPrinter extends Printer
     }
 
     /**
-     * Fix comment indent.
+     * Fix comment indent and line spacing.
      *
      * @param string $source
      *
      * @return string
      */
-    protected function fixCommentIndent($source)
+    protected function fixCommentSpacing($source)
     {
         $lines = explode("\n", $source);
         $count = count($lines);
-        for ($index = 0; $index < $count - 1; $index++) {
-            if (preg_match('~^(\s*)(//.*)~', $lines[$index], $match)) {
+        $newLines = [];
+        for ($index = 0; $index < $count; $index++) {
+            $line = $lines[$index];
+            $prevLine = $index > 0 ? $lines[$index - 1] : null;
+            $nextLine = $index < $count - 1 ? $lines[$index + 1] : null;
+
+            // Fix a comment indent that doesn't match the indent of the following line.
+            if ($nextLine !== null && preg_match('~^(\s*)(//.*)~', $line, $match)) {
                 $indent1 = $match[1];
                 $comment = $match[2];
-                preg_match('~^(\s*)~', $lines[$index + 1], $match);
+                preg_match('~^(\s*)~', $nextLine, $match);
                 $indent2 = $match[1];
                 if ($indent1 != $indent2) {
-                    $lines[$index] = $indent2 . $comment;
+                    $line = $indent2 . $comment;
                 }
             }
+
+            // Add a blank line before comments after a statement or block.
+            if ($prevLine !== null && preg_match('~^\s*(//|/\*)~', $lines[$index]) &&
+                preg_match('/[};]\s*$/', $prevLine)) {
+                $newLines[] = '';
+            }
+
+            // Save the modified line.
+            $newLines[] = $line;
         }
-        $source = implode("\n", $lines);
+        $source = implode("\n", $newLines);
         return $source;
     }
 
