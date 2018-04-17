@@ -2,6 +2,13 @@
 
 namespace Tidy;
 
+use PhpParser\Error;
+use PhpParser\ParserFactory;
+use PhpParser\PrettyPrinter;
+
+require __DIR__ . '/../vendor/nikic/php-parser/lib/bootstrap.php';
+require __DIR__ . '/CustomNikicPhpPrinter.php';
+
 /** Format PHP. */
 class PhpPrinter extends Printer
 {
@@ -27,6 +34,9 @@ class PhpPrinter extends Printer
         $cmd = 'php -l %s';
         $this->runCommand($cmd, $tempFile);
 
+        // Reformat using php-parser.
+        $this->applyNikic($tempFile);
+
         // Reformat file using php-cs-fixer.
         $cmd = $binPath . '/php-cs-fixer -q fix %s';
         $this->runCommand($cmd, $tempFile);
@@ -48,6 +58,27 @@ class PhpPrinter extends Printer
         $pretty = $this->trimExtraSpace($pretty) . "\n";
         $pretty = $this->fixIndent($pretty, $indent);
         return $pretty;
+    }
+
+    /**
+     * Apply the nikic/php-parser.
+     *
+     * @param string $file
+     */
+    protected function applyNikic($file)
+    {
+        try {
+            $source = file_get_contents($file);
+            $factory = new ParserFactory();
+            $parser = $factory->create(ParserFactory::PREFER_PHP7);
+            $ast = $parser->parse($source);
+            $options = ['shortArraySyntax' => true];
+            $prettyPrinter = new PrettyPrinter\CustomNikicPhpPrinter($options);
+            $output = $prettyPrinter->prettyPrintFile($ast);
+            file_put_contents($file, $output);
+        } catch (PhpParser\Error $exception) {
+            die("{$file}: " . $exception->getMessage() . "\n");
+        }
     }
 
     /**

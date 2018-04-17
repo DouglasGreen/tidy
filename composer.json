@@ -11,6 +11,7 @@
     "require": {
         "cerdic/css-tidy": "*",
         "friendsofphp/php-cs-fixer": "*",
+        "nikic/php-parser": "*",
         "phpmyadmin/sql-parser": "*",
         "sabberworm/php-css-parser": "*",
         "squizlabs/php_codesniffer": "*"
